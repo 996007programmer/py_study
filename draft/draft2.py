@@ -16,12 +16,84 @@
 #             print('*', end='')
 #     print()
 
-row2 = int(input('请输入打印行数3：'))
-for i in range(row2):
-    for _ in range(row2 - i - 1):
-        print(' ',end='')
-    for _ in range(2 * i + 1):
-        print('*',end='')
-    print()
+# row2 = int(input('请输入打印行数3：'))
+# for i in range(row2):
+#     for _ in range(row2 - i - 1):
+#         print(' ',end='')
+#     for _ in range(2 * i + 1):
+#         print('*',end='')
+#     print()
     
-def find_power_number:
+def find_power_number():
+    for num in range(100, 1000):
+        low = num % 10
+        mid = num // 10 % 10
+        high = num // 100
+        if num == low ** 3 + mid ** 3 + high ** 3:
+            print(num)
+
+
+
+def craps_game():
+    from random import randint
+    
+    money = 1000
+    while money > 0:
+        print('你的总资产为:', money)
+        needs_go_on = False
+        while True:
+            debt = int(input('请下注: '))
+            if 0 < debt <= money:
+                break
+        first = randint(1, 6) + randint(1, 6)
+        print('玩家摇出了%d点' % first)
+        if first == 7 or first == 11:
+            print('玩家胜!')
+            money += debt
+        elif first == 2 or first == 3 or first == 12:
+            print('庄家胜!')
+            money -= debt
+        else:
+            needs_go_on = True
+        while needs_go_on:
+            needs_go_on = False
+            current = randint(1, 6) + randint(1, 6)
+            print('玩家摇出了%d点' % current)
+            if current == 7:
+                print('庄家胜')
+                money -= debt
+            elif current == first:
+                print('玩家胜')
+                money += debt
+            else:
+                needs_go_on = True
+    print('你破产了, 游戏结束!')
+    
+def gcd(x, y):
+    (x, y) = (y, x) if x > y else (x, y)
+    for factor in range(x, 0, -1):
+        print(factor,end=' ')
+        
+def foo():
+    b = 'hello'
+
+    # Python中可以在函数内部再定义函数
+
+def foo():
+    a = 100
+    def koo():
+        nonlocal a
+        a += 1
+    koo()
+def main():
+    str1 = 'hello world!'
+    #len()计算字符长度
+    print(len(str1)) #输出12
+    #capitalize(),不修改原字符串，并且获取字符串首字母大写的拷贝
+    print(str1.capitalize()) #输出Hello world!
+    #title(),不修改原字符串，并且获取字符串每个单词首字母大写的拷贝
+    print(str1.title()) #输出Hello World!
+    #
+    
+if __name__ == '__main__':
+    main()
