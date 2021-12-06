@@ -87,23 +87,17 @@ def foo():
         nonlocal a
         a += 1
     koo()
-def main():
-    # 生成式：创建列表，列表创建后元素就绪，因而消耗内存空间 | 输出[0, 1, 2, 3, 4]
-    list1 = [x for x in range(5)]
-    # 输出['A1', 'A2', 'B1', 'B2', 'C1', 'C2']
-    list2 = [x + y for x in 'ABC' for y in '12']
-    # getsizeof()，查看对象占用内存字节数 | 输出68
-    print(sys.getsizeof(list2))
     
-    # 生成器：创建生成器非列表，能节省内存空间，但计算时要重新加载到内容，耗费时间变长
-    creator = (x ** 2 for x in range(3))
-    # 输出<generator object main.<locals>.<genexpr> at 0x01F423B0>内存地址
-    print(creator)
-    # 输出64
-    print(sys.getsizeof(creator))
-    # 打印生成器元素 | 输出0 1 4
-    for creatorer in creator:
-        print(creatorer,end=' ')
+
+def fib(n):
+    a, b = 0, 1
+    for _ in range(n):
+        a, b = b, a + b
+        yield a
+        
+def main():
+    for val in fib(20):
+        print(val, end=' ')
 
 if __name__ == '__main__':
     main()
