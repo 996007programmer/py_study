@@ -2,8 +2,7 @@
 #dt: 2021/12/6 13:55
 import os
 import time
-import random
-
+from random import randrange, randint, sample
 def generate_code(code_len=4):
 	all_chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
 	last_pos = len(all_chars) - 1
@@ -58,64 +57,90 @@ def which_day(year, month,date):
         [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
     ][is_leap_year(year)]
 	return days_of_month
-	# total = 0
-	# for index in range(month - 1):
-	# 	total += days_of_month[index]
-	# return total + date
-def main():
-	# 字面量创建字典 | 输出{'捷祖': 100, '冬冬': 98, '尹天仇': 50}
-	score = {'捷祖': 100, '冬冬': 98, '尹天仇': 50}
-	# print(score)
-	# # 构造器创建字典 | 输出{'one': 1, 'two': 2, 'three': 3, 'four': 4}
-	# item = dict(one=1, two=2, three=3, four=4)
-	# print(item)
-	# # 构造器中使用zip拉链构建字典 | 输出{'a': '1', 'b': '2', 'c': '3'}
-	# item2 = dict(zip(['a', 'b', 'c'], '123'))
-	# print(item2)
-	# # 推倒式语法创建字典 | 输出{1: 1, 2: 4, 3: 9, 4: 16}
-	# item3 = {num : num ** 2 for num in range(1, 5)}
-	# print(item3)
+	total = 0
+	for index in range(month - 1):
+		total += days_of_month[index]
+	return total + date
+
+
+def display(balls):
+	"""
+	输出列表中的双色球号码
+	:param balls:
+	:return: 无返回
+	"""
+	for index, ball in enumerate(balls):
+		if index == len(balls) - 1:
+			print('|')
+		print('%02d' % ball, end=' ')
+	print()
+
+
+def random_select():
+	"""
+	随机选择一组号码
+	:return: 返回一个列表
+	"""
+	red_balls = [x for x in range(1, 34)]
+	selected_balls = []
+	selected_balls = sample(red_balls, 6)
+	selected_balls.sort()
+	selected_balls.append(randint(1, 16))
+	return selected_balls
+
+
 	
-	# # 查找字典元素 | 输出98
-	# print(score['冬冬'])
-	# print(score.get('冬冬')) #score.get()犹豫score[],当key不存在时score[]报错
-	# if '冬冬' in score:
-	# 	print(score['冬冬'])
-	# # 遍历字典元素 | 输出捷祖 : 100 冬冬 : 98 尹天仇 : 50
-	# for key in score:
-	# 	print(f'{key} : {score[key]}', end=' ')
-	# print()
-	# # 更新字典元素
-	# score['冬冬'] = 99 #输出{'捷祖': 100, '冬冬': 99, '尹天仇': 50}
-	# score['浑天元'] = 0 #当找不到key时，则是加入此键值对 | 输出{'捷祖': 100, '冬冬': 99, '尹天仇': 50, '浑天元': 0}
-	# score.update(天鹅=8,捷祖=50) #存在键值对更新，不存在加入 | 输出{'捷祖': 50, '冬冬': 99, '尹天仇': 50, '浑天元': 0, '天鹅': 8}
-	# print(score.get('春春', 60)) #若查找值不在，则返回默认值 |　输出60
-	# # 删除字典元素
-	# print(score.popitem()) #从后往前删除 | 输出('天鹅', 8)
-	# print(score.pop('冬',999)) #弹出指定key的键值对 | 输出999
-	# # 清空字典
-	# score.clear()
-	# content = '北京欢迎你~'
-	# while True:
-	# 	os.system('clear')
-	# 	print(content)
-	# 	time.sleep(1)
-	# 	content = content[1:] + content[0]
-	# list1 = [2,3,5,6,1,6,7,1]
-	# print(max2(list1))
-	# print(which_day(2001,1,1))
-	num = int(input('Number of rows: '))
-	yh = [[]] * num # [[],[],[],[],[]]
-	for row in range(len(yh)):
-		yh[row] = [None] * (row + 1)
-		print(yh[row])
-		for col in range(len(yh[row])):
-			if col == 0 or col == row:
-				yh[row][col] = 1
-			else:
-				yh[row][col] = yh[row - 1][col] + yh[row - 1][col - 1]
-			print(yh[row][col], end='\t')
-		print()
+# def main():
+# 	persons = [True] * 30
+# 	counter, index, number = 0, 0, 0
+# 	while counter < 15:
+# 		if persons[index]:
+# 			number += 1
+# 			if number == 9:
+# 				persons[index] = False
+# 				counter += 1
+# 				number = 0
+# 		index += 1
+# 		index %= 30
+# 	for person in persons:
+# 		print('基' if person else '非',end='')
+
+def print_board(board):
+    print(board['TL'] + '|' + board['TM'] + '|' + board['TR'])
+    print('-+-+-')
+    print(board['ML'] + '|' + board['MM'] + '|' + board['MR'])
+    print('-+-+-')
+    print(board['BL'] + '|' + board['BM'] + '|' + board['BR'])
+
+
+def main():
+    init_board = {
+        'TL': ' ', 'TM': ' ', 'TR': ' ',
+        'ML': ' ', 'MM': ' ', 'MR': ' ',
+        'BL': ' ', 'BM': ' ', 'BR': ' '
+    }
+    begin = True
+    while begin:
+        curr_board = init_board.copy()
+        begin = False
+        turn = 'x'
+        counter = 0
+        os.system('clear')
+        print_board(curr_board)
+        while counter < 9:
+            move = input('轮到%s走棋, 请输入位置: ' % turn)
+            if curr_board[move] == ' ':
+                counter += 1
+                curr_board[move] = turn
+                if turn == 'x':
+                    turn = 'o'
+                else:
+                    turn = 'x'
+            os.system('clear')
+            print_board(curr_board)
+        choice = input('再玩一局?(yes|no)')
+        begin = choice == 'yes'
+
 
 if __name__ == '__main__':
 	main()
