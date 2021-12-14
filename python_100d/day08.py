@@ -42,6 +42,7 @@ class Clock(object):
 		self.second += 1
 		if self.second == 60:
 			self
+			
 def main():
 	stu1 = Student('冬冬', 24)
 	stu1.study('Python程序设计')
