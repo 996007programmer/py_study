@@ -3,12 +3,6 @@
 from random import randint
 
 
-def swap(list, i, j):
-	list[i] = list[i] ^ list[j]
-	list[j] = list[i] ^ list[j]
-	list[i] = list[i] ^ list[j]
-
-
 def bubblesort(list):
 	# 判断是否异常
 	if list == None or len(list) < 2:
@@ -18,6 +12,14 @@ def bubblesort(list):
 		for i in range(e):
 			if (list[i] > list[i + 1]):
 				swap(list, i, i + 1)
+				
+def swap(list, i, j):
+	list[i] = list[i] ^ list[j]
+	list[j] = list[i] ^ list[j]
+	list[i] = list[i] ^ list[j]
+
+
+
 
 def comparator(list):
 	list.sort()
