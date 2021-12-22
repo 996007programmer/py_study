@@ -1,6 +1,6 @@
 from typing import List
 class solution:
-    def twoSum(self, nums: List[int], target: int) -> List[int]:
+    def twosum(self, nums: List[int], target: int) -> List[int]:
         lens = len(nums)
         for i in range(lens):
             num1 = nums[i]
@@ -12,7 +12,7 @@ class solution:
 
 def main():
     solution1 = solution()
-    list2 = solution1.twoSum([1, 2, 3, 4], 7)
+    list2 = solution1.twosum([1, 2, 3, 4], 7)
     print(list2)
 
 if __name__ == '__main__':
