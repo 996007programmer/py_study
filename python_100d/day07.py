@@ -2,7 +2,9 @@
 #dt: 2021/12/6 13:55
 import os
 import time
-from random import randrange, randint, sample
+from random import randrange, randint, sample, random
+
+
 def generate_code(code_len=4):
 	all_chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
 	last_pos = len(all_chars) - 1
