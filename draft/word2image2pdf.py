@@ -161,10 +161,10 @@ def page2pdf(pdf_name):
     for i in files:
       image_help_list.append(i)
   image_help_list.sort(key=sort_key)
-  
+
   for name in image_help_list:
     image_list.append(pdf_name+'\\'+name)
-  
+
   # 获取照片尺寸，设置pdf尺寸
   im1 = Image.open(image_list[0])
   width, height = im1.size
