@@ -52,6 +52,7 @@ def main():
 			except IndexError:
 				after_old_field_index = 9999
 				after_letter = ')'
+			# 当且只有当被替换单词前后不是字母以及‘_’时，才进行替换
 			if (re.match(r'[a-zA-Z_]', before_letter)) is None and (re.match(r'[a-zA-Z_]', after_letter)) is None:
 				tmp_line = line.replace(old_field, field_dict[old_field])
 
@@ -60,8 +61,6 @@ def main():
 	with open('zs_debt_new.fql','w',encoding='utf-8') as new_fql:
 		for line in new_fql_text:
 			new_fql.write(line)
-
-	
 
 	
 if __name__ == '__main__':
