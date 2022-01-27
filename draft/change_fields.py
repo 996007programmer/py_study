@@ -13,11 +13,11 @@ def main():
 	field_dict = {}
 	new_fql_text = []
 	# 得到fql文本
-	with open('B:\\Nutore-file\\我的坚果云\\WorkFile\\招行项目\\人行特征转移\\script_fql\\zs_debt.fql', 'r', encoding='utf-8') as fql:
+	with open('E:\Project\python\py_study\source_file\zs.fql', 'r', encoding='utf-8') as fql:
 		for line in fql:
 			fql_list.append(line)
 			
-	with open('B:\\Nutore-file\\我的坚果云\\WorkFile\\招行项目\\人行特征转移\\script_fql\\zs_debt.txt', 'rt', encoding='utf-8', newline='') as field_compare:
+	with open('E:\Project\python\py_study\source_file\zs.txt', 'rt', encoding='utf-8', newline='') as field_compare:
 		lines = field_compare.readlines()
 	# 去除不合规格式
 	for line in lines:
@@ -54,11 +54,11 @@ def main():
 				after_letter = ')'
 			# 当且只有当被替换单词前后不是字母以及‘_’时，才进行替换
 			if (re.match(r'[a-zA-Z_]', before_letter)) is None and (re.match(r'[a-zA-Z_]', after_letter)) is None:
-				tmp_line = line.replace(old_field, field_dict[old_field])
+				tmp_line = tmp_line.replace(old_field, field_dict[old_field])
 
 		new_fql_text.append(tmp_line)
-	print(new_fql_text)
-	with open('zs_debt_new.fql','w',encoding='utf-8') as new_fql:
+	print('Done!')
+	with open('E:\Project\python\py_study\source_file\zs_new.fql','w',encoding='utf-8') as new_fql:
 		for line in new_fql_text:
 			new_fql.write(line)
 

@@ -1,0 +1,17 @@
+EXPAND
+    decode(POST_PAY_BIS_TYPE,'{
+	"": "a1",
+	"1": "a1"}') as af_py_btp,
+    (POST_PAY_OWE_AMT / POST_PAY_OWE_ACC_NUM) as amount
+FROM YH_POSTPAYTYPE;
+SELECT
+    pass_through(POST_PAY_OWE_ACC_NUM),
+    pass_through(POST_PAY_OWE_AMT),
+    pass_through(amount)
+FROM YH_POSTPAYTYPE
+GROUPBY(af_py_btp);
+
+select
+    -- 后付费业务类型数量
+    pass_through(POST_PAY_BIS_TYPE_NUM) as AfterpayBusinesstype_Count
+from YH_POSTPAYSMRY;

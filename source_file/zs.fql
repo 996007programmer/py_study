@@ -1,0 +1,17 @@
+EXPAND
+    decode(AF_PY_BTP,'{
+	"": "a1",
+	"1": "a1"}') as af_py_btp,
+    (INARR_COST_AMT / ACC_NUM) as amount
+FROM YH_POSTPAYTYPE;
+SELECT
+    pass_through(ACC_NUM),
+    pass_through(INARR_COST_AMT),
+    pass_through(amount)
+FROM YH_POSTPAYTYPE
+GROUPBY(af_py_btp);
+
+select
+    -- 后付费业务类型数量
+    pass_through(AF_PY_BTP_NUM) as AfterpayBusinesstype_Count
+from YH_POSTPAYSMRY;
