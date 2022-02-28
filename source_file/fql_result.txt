@@ -1,0 +1,22 @@
+{
+  "R2__Last6m__USD_LMT_Min": -9999,
+  "R2__Last12m__USD_LMT_Mean": -9999,
+  "R2__Last12m__USD_LMT_Min": -9999,
+  "R2__Last60m__USD_LMT_Median": 52,
+  "R2__Last36m__USD_LMT_Mean": 52,
+  "R2__Last36m__USD_LMT_Max": 52,
+  "R2__Last12m__USD_LMT_Sum": -9999,
+  "R2__Last60m__USD_LMT_Mean": 52,
+  "R2__Last60m__USD_LMT_Min": 52,
+  "R2__Last60m__USD_LMT_Sum": 52,
+  "R2__Last36m__USD_LMT_Min": 52,
+  "R2__Last6m__USD_LMT_Max": -9999,
+  "R2__Last6m__USD_LMT_Mean": -9999,
+  "R2__Last12m__USD_LMT_Median": -9999,
+  "R2__Last6m__USD_LMT_Sum": -9999,
+  "R2__Last6m__USD_LMT_Median": -9999,
+  "R2__Last36m__USD_LMT_Sum": 52,
+  "R2__Last36m__USD_LMT_Median": 52,
+  "R2__Last60m__USD_LMT_Max": 52,
+  "R2__Last12m__USD_LMT_Max": -9999
+}

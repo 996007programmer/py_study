@@ -1,17 +1,679 @@
-EXPAND
-    decode(POST_PAY_BIS_TYPE,'{
-	"": "a1",
-	"1": "a1"}') as af_py_btp,
-    (POST_PAY_OWE_AMT / POST_PAY_OWE_ACC_NUM) as amount
-FROM YH_POSTPAYTYPE;
-SELECT
-    pass_through(POST_PAY_OWE_ACC_NUM),
-    pass_through(POST_PAY_OWE_AMT),
-    pass_through(amount)
-FROM YH_POSTPAYTYPE
-GROUPBY(af_py_btp);
+expand
+      -- TYPE, decode for groupby
+    coalesce(Debt24M.BASICINFO_TRADETYPE,'') as BASICINFO_TRADETYPE_WITHOUT_NULL,
+    decode(BASICINFO_TRADETYPE_WITHOUT_NULL, '{
+        "": "DF",
+        "11": "HL",
+        "12": "HL",
+        "13": "HL",
+        "21": "CL",
+        "31": "OL",
+        "32": "OL",
+        "33": "OL",
+        "41": "OL",
+        "51": "OL",
+        "52": "OL",
+        "53": "OL",
+        "91": "COL",
+        "99": "OL",
+        "71": "LC",
+        "81": "LC",
+        "82": "LC",
+        "61": "SF",
+        "62": "SF",
+        "63": "SF",
+        "64": "SF",
+        "92": "FL",
+        "A1": "AD",
+        "B1": "CD"
+    }') as type,
+     decode(Debt24M.24m.PAYMENTSTATEDETAIL, '{
+        "Null": "C0",
+        "": "C0",
+        "N": "C1",
+        "1": "C2",
+        "*": "C3",
+        "2": "C4",
+        "#": "C5",
+        "C": "C6",
+        "3": "C7",
+        "4": "C8",
+        "5": "C9",
+        "6": "C10",
+        "7": "C11",
+        "D": "C12",
+        "G": "C13",
+        "A": "C14",
+        "Z": "C15",
+        "M": "C16",
+        "B": "C17"
+    }') as PAYMENTSTATEDETAIL,
+    decode(Debt24M.24m.PAYMENTSTATEDETAIL, '{
+        "Null": "M0",
+        "N": "M0",
+        "1": "M0",
+        "*": "M0",
+        "2": "M0",
+        "#": "M0",
+        "C": "M0",
+        "3": "M0",
+        "4": "M4",
+        "5": "M4",
+        "6": "M4",
+        "7": "M4",
+        "D": "M0",
+        "G": "M0",
+        "A": "M0",
+        "Z": "M0",
+        "M": "M0",
+        "B": "M0"
+    }') as ln_mx,
+    LIST_DUMMY_COUNT(PAYMENTSTATEDETAIL) as REPY_ST,
+    LIST_DUMMY_COUNT(ln_mx) as LM_MX,
+    LIST_COUNT(distinct Debt24M.24m.PAYMENTSTATEDETAIL) as REPY_ST_UniqueCount,
+    LIST_COUNT(Debt24M.24m.PAYMENTSTATEDETAIL) as REPY_ST_Count,
+
+     --24个月还款起始月时间差
+    exd_sub(Debt24M.QRY_TIM, Debt24M.RECENT24MONBEGINDATE, 'month') as Debt24M.RECENT24MONBEGINDATE_Interval,
+    --24个月还款截止月时间差
+    exd_sub(Debt24M.QRY_TIM, Debt24M.RECENT24MONENDDATE, 'month') as Debt24M.RECENT24MONENDDATE_Interval,
+    exd_sub(Debt24M.QRY_TIM, Debt24M.BASICINFO_OPENDATE, 'd') as windowingInterval
+    from YH_LAST24M;
 
 select
-    -- 后付费业务类型数量
-    pass_through(POST_PAY_BIS_TYPE_NUM) as AfterpayBusinesstype_Count
-from YH_POSTPAYSMRY;
+    max(LM_MX_M4_DummyCount) as LM_MX_M4_DummyCount_Max,
+    min(REPY_ST_C1_DummyCount) as REPY_ST_C1_DummyCount_Min,
+    max(REPY_ST_C1_DummyCount) as REPY_ST_C1_DummyCount_Max,
+    mean(REPY_ST_C1_DummyCount) as REPY_ST_C1_DummyCount_Mean,
+    sum(REPY_ST_C1_DummyCount) as REPY_ST_C1_DummyCount_Sum,
+    median(REPY_ST_C1_DummyCount) as REPY_ST_C1_DummyCount_Median,
+    min(REPY_ST_C2_DummyCount) as REPY_ST_C2_DummyCount_Min,
+    max(REPY_ST_C2_DummyCount) as REPY_ST_C2_DummyCount_Max,
+    mean(REPY_ST_C2_DummyCount) as REPY_ST_C2_DummyCount_Mean,
+    sum(REPY_ST_C2_DummyCount) as REPY_ST_C2_DummyCount_Sum,
+    median(REPY_ST_C2_DummyCount) as REPY_ST_C2_DummyCount_Median,
+    min(REPY_ST_C3_DummyCount) as REPY_ST_C3_DummyCount_Min,
+    max(REPY_ST_C3_DummyCount) as REPY_ST_C3_DummyCount_Max,
+    mean(REPY_ST_C3_DummyCount) as REPY_ST_C3_DummyCount_Mean,
+    sum(REPY_ST_C3_DummyCount) as REPY_ST_C3_DummyCount_Sum,
+    median(REPY_ST_C3_DummyCount) as REPY_ST_C3_DummyCount_Median,
+    min(REPY_ST_C4_DummyCount) as REPY_ST_C4_DummyCount_Min,
+    max(REPY_ST_C4_DummyCount) as REPY_ST_C4_DummyCount_Max,
+    mean(REPY_ST_C4_DummyCount) as REPY_ST_C4_DummyCount_Mean,
+    sum(REPY_ST_C4_DummyCount) as REPY_ST_C4_DummyCount_Sum,
+    median(REPY_ST_C4_DummyCount) as REPY_ST_C4_DummyCount_Median,
+    min(REPY_ST_C5_DummyCount) as REPY_ST_C5_DummyCount_Min,
+    max(REPY_ST_C5_DummyCount) as REPY_ST_C5_DummyCount_Max,
+    mean(REPY_ST_C5_DummyCount) as REPY_ST_C5_DummyCount_Mean,
+    sum(REPY_ST_C5_DummyCount) as REPY_ST_C5_DummyCount_Sum,
+    median(REPY_ST_C5_DummyCount) as REPY_ST_C5_DummyCount_Median,
+    min(REPY_ST_C6_DummyCount) as REPY_ST_C6_DummyCount_Min,
+    max(REPY_ST_C6_DummyCount) as REPY_ST_C6_DummyCount_Max,
+    mean(REPY_ST_C6_DummyCount) as REPY_ST_C6_DummyCount_Mean,
+    sum(REPY_ST_C6_DummyCount) as REPY_ST_C6_DummyCount_Sum,
+    median(REPY_ST_C6_DummyCount) as REPY_ST_C6_DummyCount_Median,
+    min(REPY_ST_C7_DummyCount) as REPY_ST_C7_DummyCount_Min,
+    max(REPY_ST_C7_DummyCount) as REPY_ST_C7_DummyCount_Max,
+    mean(REPY_ST_C7_DummyCount) as REPY_ST_C7_DummyCount_Mean,
+    sum(REPY_ST_C7_DummyCount) as REPY_ST_C7_DummyCount_Sum,
+    median(REPY_ST_C7_DummyCount) as REPY_ST_C7_DummyCount_Median,
+    min(REPY_ST_C8_DummyCount) as REPY_ST_C8_DummyCount_Min,
+    max(REPY_ST_C8_DummyCount) as REPY_ST_C8_DummyCount_Max,
+    mean(REPY_ST_C8_DummyCount) as REPY_ST_C8_DummyCount_Mean,
+    sum(REPY_ST_C8_DummyCount) as REPY_ST_C8_DummyCount_Sum,
+    median(REPY_ST_C8_DummyCount) as REPY_ST_C8_DummyCount_Median,
+    min(REPY_ST_C9_DummyCount) as REPY_ST_C9_DummyCount_Min,
+    max(REPY_ST_C9_DummyCount) as REPY_ST_C9_DummyCount_Max,
+    mean(REPY_ST_C9_DummyCount) as REPY_ST_C9_DummyCount_Mean,
+    sum(REPY_ST_C9_DummyCount) as REPY_ST_C9_DummyCount_Sum,
+    median(REPY_ST_C9_DummyCount) as REPY_ST_C9_DummyCount_Median,
+    min(REPY_ST_C10_DummyCount) as REPY_ST_C10_DummyCount_Min,
+    max(REPY_ST_C10_DummyCount) as REPY_ST_C10_DummyCount_Max,
+    mean(REPY_ST_C10_DummyCount) as REPY_ST_C10_DummyCount_Mean,
+    sum(REPY_ST_C10_DummyCount) as REPY_ST_C10_DummyCount_Sum,
+    median(REPY_ST_C10_DummyCount) as REPY_ST_C10_DummyCount_Median,
+    min(REPY_ST_C11_DummyCount) as REPY_ST_C11_DummyCount_Min,
+    max(REPY_ST_C11_DummyCount) as REPY_ST_C11_DummyCount_Max,
+    mean(REPY_ST_C11_DummyCount) as REPY_ST_C11_DummyCount_Mean,
+    sum(REPY_ST_C11_DummyCount) as REPY_ST_C11_DummyCount_Sum,
+    median(REPY_ST_C11_DummyCount) as REPY_ST_C11_DummyCount_Median,
+    min(REPY_ST_C12_DummyCount) as REPY_ST_C12_DummyCount_Min,
+    max(REPY_ST_C12_DummyCount) as REPY_ST_C12_DummyCount_Max,
+    mean(REPY_ST_C12_DummyCount) as REPY_ST_C12_DummyCount_Mean,
+    sum(REPY_ST_C12_DummyCount) as REPY_ST_C12_DummyCount_Sum,
+    median(REPY_ST_C12_DummyCount) as REPY_ST_C12_DummyCount_Median,
+    min(REPY_ST_C13_DummyCount) as REPY_ST_C13_DummyCount_Min,
+    max(REPY_ST_C13_DummyCount) as REPY_ST_C13_DummyCount_Max,
+    mean(REPY_ST_C13_DummyCount) as REPY_ST_C13_DummyCount_Mean,
+    sum(REPY_ST_C13_DummyCount) as REPY_ST_C13_DummyCount_Sum,
+    median(REPY_ST_C13_DummyCount) as REPY_ST_C13_DummyCount_Median,
+    min(REPY_ST_C14_DummyCount) as REPY_ST_C14_DummyCount_Min,
+    max(REPY_ST_C14_DummyCount) as REPY_ST_C14_DummyCount_Max,
+    mean(REPY_ST_C14_DummyCount) as REPY_ST_C14_DummyCount_Mean,
+    sum(REPY_ST_C14_DummyCount) as REPY_ST_C14_DummyCount_Sum,
+    median(REPY_ST_C14_DummyCount) as REPY_ST_C14_DummyCount_Median,
+    min(REPY_ST_C15_DummyCount) as REPY_ST_C15_DummyCount_Min,
+    max(REPY_ST_C15_DummyCount) as REPY_ST_C15_DummyCount_Max,
+    mean(REPY_ST_C15_DummyCount) as REPY_ST_C15_DummyCount_Mean,
+    sum(REPY_ST_C15_DummyCount) as REPY_ST_C15_DummyCount_Sum,
+    median(REPY_ST_C15_DummyCount) as REPY_ST_C15_DummyCount_Median,
+    min(REPY_ST_C16_DummyCount) as REPY_ST_C16_DummyCount_Min,
+    max(REPY_ST_C16_DummyCount) as REPY_ST_C16_DummyCount_Max,
+    mean(REPY_ST_C16_DummyCount) as REPY_ST_C16_DummyCount_Mean,
+    sum(REPY_ST_C16_DummyCount) as REPY_ST_C16_DummyCount_Sum,
+    median(REPY_ST_C16_DummyCount) as REPY_ST_C16_DummyCount_Median,
+    min(REPY_ST_C17_DummyCount) as REPY_ST_C17_DummyCount_Min,
+    max(REPY_ST_C17_DummyCount) as REPY_ST_C17_DummyCount_Max,
+    mean(REPY_ST_C17_DummyCount) as REPY_ST_C17_DummyCount_Mean,
+    sum(REPY_ST_C17_DummyCount) as REPY_ST_C17_DummyCount_Sum,
+    median(REPY_ST_C17_DummyCount) as REPY_ST_C17_DummyCount_Median,
+    max(REPY_ST_UniqueCount),
+    min(REPY_ST_UniqueCount),
+    mean(REPY_ST_UniqueCount),
+    sum(REPY_ST_UniqueCount),
+    median(REPY_ST_UniqueCount),
+    max(REPY_ST_Count),
+    min(REPY_ST_Count),
+    mean(REPY_ST_Count),
+    sum(REPY_ST_Count),
+    median(REPY_ST_Count),
+    min(RCTLY24ETRSMRSTRTYRMO_Interval),
+    max(RCTLY24ETRSMRSTRTYRMO_Interval),
+    mean(RCTLY24ETRSMRSTRTYRMO_Interval),
+    sum(RCTLY24ETRSMRSTRTYRMO_Interval),
+    median(RCTLY24ETRSMRSTRTYRMO_Interval),
+    min(RCTLY24ETRSMORCOFYRMO_Interval),
+    max(RCTLY24ETRSMORCOFYRMO_Interval),
+    mean(RCTLY24ETRSMORCOFYRMO_Interval),
+    sum(RCTLY24ETRSMORCOFYRMO_Interval),
+    median(RCTLY24ETRSMORCOFYRMO_Interval)
+
+from YH_LAST24M
+windowing('d', windowingInterval, 90, 180, 360, 1080, 1800)
+groupby(type)
+where type != null;
+
+--2021-11-22 zhaohl增加泰隆特征
+expand
+    decode(IDVDBTCR_BNCTG_SBDVSN_WITHOUT_NULL, '{
+        "11": "HL",
+        "12": "HL",
+        "13": "HL",
+        "21": "CL",
+        "31": "OL",
+        "32": "OL",
+        "33": "OL",
+        "41": "BL",
+        "51": "BL",
+        "52": "BL",
+        "53": "BL",
+        "91": "COL",
+        "99": "OL",
+        "71": "Standardloancard",
+        "81": "Loancard",
+        "82": "Loancard"}') as busiType
+
+    -- 逾期起始时间差
+    ,exd_sub(Debt24M.QRY_TIM, Debt24M.RECENT24MONBEGINDATE, 'month') as ApplydtM24beginmon_Interval
+    -- 逾期截止时间差
+    ,exd_sub(Debt24M.QRY_TIM, Debt24M.RECENT24MONENDDATE, 'month') as ApplydtM24endmon_Interval
+
+    -- 逾期时间窗口
+    ,list_window(Debt24M.QRY_TIM, Debt24M.24m.MONTH, Debt24M.24m.PAYMENTSTATEDETAIL,'m', 1,3,6,12,36,60)
+    ,list_window(Debt24M.QRY_TIM, Debt24M.24m.MONTH, Debt24M.24m.MONTH,'m', 1,3,6,12,36,60)
+
+    -- 过去1个月内
+    ,decode(list_window1m.PAYMENTSTATEDETAIL, '{
+        "Null": "M0","N": "M0","1": "M0","*": "M0","2": "M0","#": "M0","C": "M0","3": "M0","M": "M0","A": "M0",
+        "4": "M4","5": "M4","6": "M4","7": "M4","D": "M4","G": "M4","Z": "M4","B": "M4"
+    }') as ln_mx_1m
+    ,decode(list_window1m.PAYMENTSTATEDETAIL, '{
+            "Null": "C0","": "C0","N": "C1","1": "C2","*": "C3","2": "C4","#": "C5","C": "C6","3": "C7","4": "C8",
+            "5": "C9","6": "C10","7": "C11","D": "C12","G": "C13","A": "C14","Z": "C15","M": "C16","B": "C17"
+        }') as repy_st_1m
+    ,LIST_DUMMY_COUNT(repy_st_1m) as Last1m_Repyst
+    ,LIST_DUMMY_COUNT(ln_mx_1m) as Last1m_Lnmx
+    ,LIST_COUNT(repy_st_1m) as Last1m_rpst_Cnt
+    ,LIST_COUNT(distinct repy_st_1m) as Last1m_rpst_UniqCnt
+
+    -- 过去3个月内
+    ,decode(list_window3m.PAYMENTSTATEDETAIL, '{
+        "Null": "M0","N": "M0","1": "M0","*": "M0","2": "M0","#": "M0","C": "M0","3": "M0","M": "M0","A": "M0",
+        "4": "M4","5": "M4","6": "M4","7": "M4","D": "M4","G": "M4","Z": "M4","B": "M4"
+    }') as ln_mx_3m
+    ,decode(list_window3m.PAYMENTSTATEDETAIL, '{
+            "Null": "C0","": "C0","N": "C1","1": "C2","*": "C3","2": "C4","#": "C5","C": "C6","3": "C7","4": "C8",
+            "5": "C9","6": "C10","7": "C11","D": "C12","G": "C13","A": "C14","Z": "C15","M": "C16","B": "C17"
+        }') as repy_st_3m
+    ,LIST_DUMMY_COUNT(repy_st_3m) as Last3m_Repyst
+    ,LIST_DUMMY_COUNT(ln_mx_3m) as Last3m_Lnmx
+    ,LIST_COUNT(repy_st_3m) as Last3m_rpst_Cnt
+    ,LIST_COUNT(distinct repy_st_3m) as Last3m_rpst_UniqCnt
+
+    -- 过去6个月内
+    ,decode(list_window6m.PAYMENTSTATEDETAIL, '{
+        "Null": "M0","N": "M0","1": "M0","*": "M0","2": "M0","#": "M0","C": "M0","3": "M0","M": "M0","A": "M0",
+        "4": "M4","5": "M4","6": "M4","7": "M4","D": "M4","G": "M4","Z": "M4","B": "M4"
+    }') as ln_mx_6m
+    ,decode(list_window6m.PAYMENTSTATEDETAIL, '{
+            "Null": "C0","": "C0","N": "C1","1": "C2","*": "C3","2": "C4","#": "C5","C": "C6","3": "C7","4": "C8",
+            "5": "C9","6": "C10","7": "C11","D": "C12","G": "C13","A": "C14","Z": "C15","M": "C16","B": "C17"
+        }') as repy_st_6m
+    ,LIST_DUMMY_COUNT(repy_st_6m) as Last6m_Repyst
+    ,LIST_DUMMY_COUNT(ln_mx_6m) as Last6m_Lnmx
+    ,LIST_COUNT(repy_st_6m) as Last6m_rpst_Cnt
+    ,LIST_COUNT(distinct repy_st_6m) as Last6m_rpst_UniqCnt
+
+    -- 过去12个月内
+    ,decode(list_window12m.PAYMENTSTATEDETAIL, '{
+        "Null": "M0","N": "M0","1": "M0","*": "M0","2": "M0","#": "M0","C": "M0","3": "M0","M": "M0","A": "M0",
+        "4": "M4","5": "M4","6": "M4","7": "M4","D": "M4","G": "M4","Z": "M4","B": "M4"
+    }') as ln_mx_12m
+    ,decode(list_window12m.PAYMENTSTATEDETAIL, '{
+            "Null": "C0","": "C0","N": "C1","1": "C2","*": "C3","2": "C4","#": "C5","C": "C6","3": "C7","4": "C8",
+            "5": "C9","6": "C10","7": "C11","D": "C12","G": "C13","A": "C14","Z": "C15","M": "C16","B": "C17"
+        }') as repy_st_12m
+    ,LIST_DUMMY_COUNT(repy_st_12m) as Last12m_Repyst
+    ,LIST_DUMMY_COUNT(ln_mx_12m) as Last12m_Lnmx
+    ,LIST_COUNT(repy_st_12m) as Last12m_rpst_Cnt
+    ,LIST_COUNT(distinct repy_st_12m) as Last12m_rpst_UniqCnt
+
+    -- 过去36个月内
+    ,decode(list_window36m.PAYMENTSTATEDETAIL, '{
+        "Null": "M0","N": "M0","1": "M0","*": "M0","2": "M0","#": "M0","C": "M0","3": "M0","M": "M0","A": "M0",
+        "4": "M4","5": "M4","6": "M4","7": "M4","D": "M4","G": "M4","Z": "M4","B": "M4"
+    }') as ln_mx_36m
+    ,decode(list_window36m.PAYMENTSTATEDETAIL, '{
+            "Null": "C0","": "C0","N": "C1","1": "C2","*": "C3","2": "C4","#": "C5","C": "C6","3": "C7","4": "C8",
+            "5": "C9","6": "C10","7": "C11","D": "C12","G": "C13","A": "C14","Z": "C15","M": "C16","B": "C17"
+        }') as repy_st_36m
+    ,LIST_DUMMY_COUNT(repy_st_36m) as Last36m_Repyst
+    ,LIST_DUMMY_COUNT(ln_mx_36m) as Last36m_Lnmx
+    ,LIST_COUNT(repy_st_36m) as Last36m_rpst_Cnt
+    ,LIST_COUNT(distinct repy_st_36m) as Last36m_rpst_UniqCnt
+
+    -- 过去60个月内
+    ,decode(list_window36m.PAYMENTSTATEDETAIL, '{
+        "Null": "M0","N": "M0","1": "M0","*": "M0","2": "M0","#": "M0","C": "M0","3": "M0","M": "M0","A": "M0",
+        "4": "M4","5": "M4","6": "M4","7": "M4","D": "M4","G": "M4","Z": "M4","B": "M4"
+    }') as ln_mx_60m
+    ,decode(list_window36m.PAYMENTSTATEDETAIL, '{
+            "Null": "C0","": "C0","N": "C1","1": "C2","*": "C3","2": "C4","#": "C5","C": "C6","3": "C7","4": "C8",
+            "5": "C9","6": "C10","7": "C11","D": "C12","G": "C13","A": "C14","Z": "C15","M": "C16","B": "C17"
+        }') as repy_st_60m
+    ,LIST_DUMMY_COUNT(repy_st_60m) as Last60m_Repyst
+    ,LIST_DUMMY_COUNT(ln_mx_60m) as Last60m_Lnmx
+    ,LIST_COUNT(repy_st_60m) as Last60m_rpst_Cnt
+    ,LIST_COUNT(distinct repy_st_60m) as Last60m_rpst_UniqCnt
+
+
+
+from YH_LAST24M
+;
+
+
+select
+    -- 过去30天
+    max(Last1m_Lnmx_M4_DummyCount) as Last30Days_Ln_M4Cnt_Max
+    ,max(Last1m_rpst_Cnt) as Last1m_rpstCnt_Max
+    ,mean(Last1m_rpst_Cnt) as Last1m_rpstCnt_Mean
+    ,sum(Last1m_rpst_Cnt) as Last1m_rpstCnt_Sum
+    ,max(Last1m_rpst_UniqCnt) as Last1m_rpstUniqCnt_Max
+    ,mean(Last1m_rpst_UniqCnt) as Last1m_rpstUniqCnt_Mean
+    ,sum(Last1m_rpst_UniqCnt) as Last1m_rpstUniqCnt_Sum
+    ,max(Last1m_Repyst_C1_DummyCount) as Last30Days_Rp_C1_DummyCount_Max
+    ,mean(Last1m_Repyst_C1_DummyCount) as Last30Days_Rp_C1_DummyCount_Mean
+    ,sum(Last1m_Repyst_C1_DummyCount) as Last30Days_Rp_C1_DummyCount_Sum
+    ,max(Last1m_Repyst_C2_DummyCount) as Last30Days_Rp_C2_DummyCount_Max
+    ,mean(Last1m_Repyst_C2_DummyCount) as Last30Days_Rp_C2_DummyCount_Mean
+    ,sum(Last1m_Repyst_C2_DummyCount) as Last30Days_Rp_C2_DummyCount_Sum
+    ,max(Last1m_Repyst_C3_DummyCount) as Last30Days_Rp_C3_DummyCount_Max
+    ,mean(Last1m_Repyst_C3_DummyCount) as Last30Days_Rp_C3_DummyCount_Mean
+    ,sum(Last1m_Repyst_C3_DummyCount) as Last30Days_Rp_C3_DummyCount_Sum
+    ,max(Last1m_Repyst_C4_DummyCount) as Last30Days_Rp_C4_DummyCount_Max
+    ,mean(Last1m_Repyst_C4_DummyCount) as Last30Days_Rp_C4_DummyCount_Mean
+    ,sum(Last1m_Repyst_C4_DummyCount) as Last30Days_Rp_C4_DummyCount_Sum
+    ,max(Last1m_Repyst_C5_DummyCount) as Last30Days_Rp_C5_DummyCount_Max
+    ,mean(Last1m_Repyst_C5_DummyCount) as Last30Days_Rp_C5_DummyCount_Mean
+    ,sum(Last1m_Repyst_C5_DummyCount) as Last30Days_Rp_C5_DummyCount_Sum
+    ,max(Last1m_Repyst_C6_DummyCount) as Last30Days_Rp_C6_DummyCount_Max
+    ,mean(Last1m_Repyst_C6_DummyCount) as Last30Days_Rp_C6_DummyCount_Mean
+    ,sum(Last1m_Repyst_C6_DummyCount) as Last30Days_Rp_C6_DummyCount_Sum
+    ,max(Last1m_Repyst_C7_DummyCount) as Last30Days_Rp_C7_DummyCount_Max
+    ,mean(Last1m_Repyst_C7_DummyCount) as Last30Days_Rp_C7_DummyCount_Mean
+    ,sum(Last1m_Repyst_C7_DummyCount) as Last30Days_Rp_C7_DummyCount_Sum
+    ,max(Last1m_Repyst_C8_DummyCount) as Last30Days_Rp_C8_DummyCount_Max
+    ,mean(Last1m_Repyst_C8_DummyCount) as Last30Days_Rp_C8_DummyCount_Mean
+    ,sum(Last1m_Repyst_C8_DummyCount) as Last30Days_Rp_C8_DummyCount_Sum
+    ,max(Last1m_Repyst_C9_DummyCount) as Last30Days_Rp_C9_DummyCount_Max
+    ,mean(Last1m_Repyst_C9_DummyCount) as Last30Days_Rp_C9_DummyCount_Mean
+    ,sum(Last1m_Repyst_C9_DummyCount) as Last30Days_Rp_C9_DummyCount_Sum
+    ,max(Last1m_Repyst_C10_DummyCount) as Last30Days_Rp_C10_DummyCount_Max
+    ,mean(Last1m_Repyst_C10_DummyCount) as Last30Days_Rp_C10_DummyCount_Mean
+    ,sum(Last1m_Repyst_C10_DummyCount) as Last30Days_Rp_C10_DummyCount_Sum
+    ,max(Last1m_Repyst_C11_DummyCount) as Last30Days_Rp_C11_DummyCount_Max
+    ,mean(Last1m_Repyst_C11_DummyCount) as Last30Days_Rp_C11_DummyCount_Mean
+    ,sum(Last1m_Repyst_C11_DummyCount) as Last30Days_Rp_C11_DummyCount_Sum
+    ,max(Last1m_Repyst_C12_DummyCount) as Last30Days_Rp_C12_DummyCount_Max
+    ,mean(Last1m_Repyst_C12_DummyCount) as Last30Days_Rp_C12_DummyCount_Mean
+    ,sum(Last1m_Repyst_C12_DummyCount) as Last30Days_Rp_C12_DummyCount_Sum
+    ,max(Last1m_Repyst_C13_DummyCount) as Last30Days_Rp_C13_DummyCount_Max
+    ,mean(Last1m_Repyst_C13_DummyCount) as Last30Days_Rp_C13_DummyCount_Mean
+    ,sum(Last1m_Repyst_C13_DummyCount) as Last30Days_Rp_C13_DummyCount_Sum
+    ,max(Last1m_Repyst_C14_DummyCount) as Last30Days_Rp_C14_DummyCount_Max
+    ,mean(Last1m_Repyst_C14_DummyCount) as Last30Days_Rp_C14_DummyCount_Mean
+    ,sum(Last1m_Repyst_C14_DummyCount) as Last30Days_Rp_C14_DummyCount_Sum
+    ,max(Last1m_Repyst_C15_DummyCount) as Last30Days_Rp_C15_DummyCount_Max
+    ,mean(Last1m_Repyst_C15_DummyCount) as Last30Days_Rp_C15_DummyCount_Mean
+    ,sum(Last1m_Repyst_C15_DummyCount) as Last30Days_Rp_C15_DummyCount_Sum
+    ,max(Last1m_Repyst_C16_DummyCount) as Last30Days_Rp_C16_DummyCount_Max
+    ,mean(Last1m_Repyst_C16_DummyCount) as Last30Days_Rp_C16_DummyCount_Mean
+    ,sum(Last1m_Repyst_C16_DummyCount) as Last30Days_Rp_C16_DummyCount_Sum
+    ,max(Last1m_Repyst_C17_DummyCount) as Last30Days_Rp_C17_DummyCount_Max
+    ,mean(Last1m_Repyst_C17_DummyCount) as Last30Days_Rp_C17_DummyCount_Mean
+    ,sum(Last1m_Repyst_C17_DummyCount) as Last30Days_Rp_C17_DummyCount_Sum
+
+    -- 过去90天
+    ,max(Last3m_Lnmx_M4_DummyCount) as Last90Days_Ln_M4Cnt_Max
+    ,max(Last3m_rpst_Cnt) as Last3m_rpstCnt_Max
+    ,mean(Last3m_rpst_Cnt) as Last3m_rpstCnt_Mean
+    ,sum(Last3m_rpst_Cnt) as Last3m_rpstCnt_Sum
+    ,max(Last3m_rpst_UniqCnt) as Last3m_rpstUniqCnt_Max
+    ,mean(Last3m_rpst_UniqCnt) as Last3m_rpstUniqCnt_Mean
+    ,sum(Last3m_rpst_UniqCnt) as Last3m_rpstUniqCnt_Sum
+    ,max(Last3m_Repyst_C1_DummyCount) as Last90Days_Rp_C1_DummyCount_Max
+    ,mean(Last3m_Repyst_C1_DummyCount) as Last90Days_Rp_C1_DummyCount_Mean
+    ,sum(Last3m_Repyst_C1_DummyCount) as Last90Days_Rp_C1_DummyCount_Sum
+    ,max(Last3m_Repyst_C2_DummyCount) as Last90Days_Rp_C2_DummyCount_Max
+    ,mean(Last3m_Repyst_C2_DummyCount) as Last90Days_Rp_C2_DummyCount_Mean
+    ,sum(Last3m_Repyst_C2_DummyCount) as Last90Days_Rp_C2_DummyCount_Sum
+    ,max(Last3m_Repyst_C3_DummyCount) as Last90Days_Rp_C3_DummyCount_Max
+    ,mean(Last3m_Repyst_C3_DummyCount) as Last90Days_Rp_C3_DummyCount_Mean
+    ,sum(Last3m_Repyst_C3_DummyCount) as Last90Days_Rp_C3_DummyCount_Sum
+    ,max(Last3m_Repyst_C4_DummyCount) as Last90Days_Rp_C4_DummyCount_Max
+    ,mean(Last3m_Repyst_C4_DummyCount) as Last90Days_Rp_C4_DummyCount_Mean
+    ,sum(Last3m_Repyst_C4_DummyCount) as Last90Days_Rp_C4_DummyCount_Sum
+    ,max(Last3m_Repyst_C5_DummyCount) as Last90Days_Rp_C5_DummyCount_Max
+    ,mean(Last3m_Repyst_C5_DummyCount) as Last90Days_Rp_C5_DummyCount_Mean
+    ,sum(Last3m_Repyst_C5_DummyCount) as Last90Days_Rp_C5_DummyCount_Sum
+    ,max(Last3m_Repyst_C6_DummyCount) as Last90Days_Rp_C6_DummyCount_Max
+    ,mean(Last3m_Repyst_C6_DummyCount) as Last90Days_Rp_C6_DummyCount_Mean
+    ,sum(Last3m_Repyst_C6_DummyCount) as Last90Days_Rp_C6_DummyCount_Sum
+    ,max(Last3m_Repyst_C7_DummyCount) as Last90Days_Rp_C7_DummyCount_Max
+    ,mean(Last3m_Repyst_C7_DummyCount) as Last90Days_Rp_C7_DummyCount_Mean
+    ,sum(Last3m_Repyst_C7_DummyCount) as Last90Days_Rp_C7_DummyCount_Sum
+    ,max(Last3m_Repyst_C8_DummyCount) as Last90Days_Rp_C8_DummyCount_Max
+    ,mean(Last3m_Repyst_C8_DummyCount) as Last90Days_Rp_C8_DummyCount_Mean
+    ,sum(Last3m_Repyst_C8_DummyCount) as Last90Days_Rp_C8_DummyCount_Sum
+    ,max(Last3m_Repyst_C9_DummyCount) as Last90Days_Rp_C9_DummyCount_Max
+    ,mean(Last3m_Repyst_C9_DummyCount) as Last90Days_Rp_C9_DummyCount_Mean
+    ,sum(Last3m_Repyst_C9_DummyCount) as Last90Days_Rp_C9_DummyCount_Sum
+    ,max(Last3m_Repyst_C10_DummyCount) as Last90Days_Rp_C10_DummyCount_Max
+    ,mean(Last3m_Repyst_C10_DummyCount) as Last90Days_Rp_C10_DummyCount_Mean
+    ,sum(Last3m_Repyst_C10_DummyCount) as Last90Days_Rp_C10_DummyCount_Sum
+    ,max(Last3m_Repyst_C11_DummyCount) as Last90Days_Rp_C11_DummyCount_Max
+    ,mean(Last3m_Repyst_C11_DummyCount) as Last90Days_Rp_C11_DummyCount_Mean
+    ,sum(Last3m_Repyst_C11_DummyCount) as Last90Days_Rp_C11_DummyCount_Sum
+    ,max(Last3m_Repyst_C12_DummyCount) as Last90Days_Rp_C12_DummyCount_Max
+    ,mean(Last3m_Repyst_C12_DummyCount) as Last90Days_Rp_C12_DummyCount_Mean
+    ,sum(Last3m_Repyst_C12_DummyCount) as Last90Days_Rp_C12_DummyCount_Sum
+    ,max(Last3m_Repyst_C13_DummyCount) as Last90Days_Rp_C13_DummyCount_Max
+    ,mean(Last3m_Repyst_C13_DummyCount) as Last90Days_Rp_C13_DummyCount_Mean
+    ,sum(Last3m_Repyst_C13_DummyCount) as Last90Days_Rp_C13_DummyCount_Sum
+    ,max(Last3m_Repyst_C14_DummyCount) as Last90Days_Rp_C14_DummyCount_Max
+    ,mean(Last3m_Repyst_C14_DummyCount) as Last90Days_Rp_C14_DummyCount_Mean
+    ,sum(Last3m_Repyst_C14_DummyCount) as Last90Days_Rp_C14_DummyCount_Sum
+    ,max(Last3m_Repyst_C15_DummyCount) as Last90Days_Rp_C15_DummyCount_Max
+    ,mean(Last3m_Repyst_C15_DummyCount) as Last90Days_Rp_C15_DummyCount_Mean
+    ,sum(Last3m_Repyst_C15_DummyCount) as Last90Days_Rp_C15_DummyCount_Sum
+    ,max(Last3m_Repyst_C16_DummyCount) as Last90Days_Rp_C16_DummyCount_Max
+    ,mean(Last3m_Repyst_C16_DummyCount) as Last90Days_Rp_C16_DummyCount_Mean
+    ,sum(Last3m_Repyst_C16_DummyCount) as Last90Days_Rp_C16_DummyCount_Sum
+    ,max(Last3m_Repyst_C17_DummyCount) as Last90Days_Rp_C17_DummyCount_Max
+    ,mean(Last3m_Repyst_C17_DummyCount) as Last90Days_Rp_C17_DummyCount_Mean
+    ,sum(Last3m_Repyst_C17_DummyCount) as Last90Days_Rp_C17_DummyCount_Sum
+
+    -- 过去180天
+    ,max(Last6m_Lnmx_M4_DummyCount) as Last180Days_Ln_M4Cnt_Max
+    ,max(Last6m_rpst_Cnt) as Last6m_rpstCnt_Max
+    ,mean(Last6m_rpst_Cnt) as Last6m_rpstCnt_Mean
+    ,sum(Last6m_rpst_Cnt) as Last6m_rpstCnt_Sum
+    ,max(Last6m_rpst_UniqCnt) as Last6m_rpstUniqCnt_Max
+    ,mean(Last6m_rpst_UniqCnt) as Last6m_rpstUniqCnt_Mean
+    ,sum(Last6m_rpst_UniqCnt) as Last6m_rpstUniqCnt_Sum
+    ,max(Last6m_Repyst_C1_DummyCount) as Last180Days_Rp_C1_DummyCount_Max
+    ,mean(Last6m_Repyst_C1_DummyCount) as Last180Days_Rp_C1_DummyCount_Mean
+    ,sum(Last6m_Repyst_C1_DummyCount) as Last180Days_Rp_C1_DummyCount_Sum
+    ,max(Last6m_Repyst_C2_DummyCount) as Last180Days_Rp_C2_DummyCount_Max
+    ,mean(Last6m_Repyst_C2_DummyCount) as Last180Days_Rp_C2_DummyCount_Mean
+    ,sum(Last6m_Repyst_C2_DummyCount) as Last180Days_Rp_C2_DummyCount_Sum
+    ,max(Last6m_Repyst_C3_DummyCount) as Last180Days_Rp_C3_DummyCount_Max
+    ,mean(Last6m_Repyst_C3_DummyCount) as Last180Days_Rp_C3_DummyCount_Mean
+    ,sum(Last6m_Repyst_C3_DummyCount) as Last180Days_Rp_C3_DummyCount_Sum
+    ,max(Last6m_Repyst_C4_DummyCount) as Last180Days_Rp_C4_DummyCount_Max
+    ,mean(Last6m_Repyst_C4_DummyCount) as Last180Days_Rp_C4_DummyCount_Mean
+    ,sum(Last6m_Repyst_C4_DummyCount) as Last180Days_Rp_C4_DummyCount_Sum
+    ,max(Last6m_Repyst_C5_DummyCount) as Last180Days_Rp_C5_DummyCount_Max
+    ,mean(Last6m_Repyst_C5_DummyCount) as Last180Days_Rp_C5_DummyCount_Mean
+    ,sum(Last6m_Repyst_C5_DummyCount) as Last180Days_Rp_C5_DummyCount_Sum
+    ,max(Last6m_Repyst_C6_DummyCount) as Last180Days_Rp_C6_DummyCount_Max
+    ,mean(Last6m_Repyst_C6_DummyCount) as Last180Days_Rp_C6_DummyCount_Mean
+    ,sum(Last6m_Repyst_C6_DummyCount) as Last180Days_Rp_C6_DummyCount_Sum
+    ,max(Last6m_Repyst_C7_DummyCount) as Last180Days_Rp_C7_DummyCount_Max
+    ,mean(Last6m_Repyst_C7_DummyCount) as Last180Days_Rp_C7_DummyCount_Mean
+    ,sum(Last6m_Repyst_C7_DummyCount) as Last180Days_Rp_C7_DummyCount_Sum
+    ,max(Last6m_Repyst_C8_DummyCount) as Last180Days_Rp_C8_DummyCount_Max
+    ,mean(Last6m_Repyst_C8_DummyCount) as Last180Days_Rp_C8_DummyCount_Mean
+    ,sum(Last6m_Repyst_C8_DummyCount) as Last180Days_Rp_C8_DummyCount_Sum
+    ,max(Last6m_Repyst_C9_DummyCount) as Last180Days_Rp_C9_DummyCount_Max
+    ,mean(Last6m_Repyst_C9_DummyCount) as Last180Days_Rp_C9_DummyCount_Mean
+    ,sum(Last6m_Repyst_C9_DummyCount) as Last180Days_Rp_C9_DummyCount_Sum
+    ,max(Last6m_Repyst_C10_DummyCount) as Last180Days_Rp_C10_DummyCount_Max
+    ,mean(Last6m_Repyst_C10_DummyCount) as Last180Days_Rp_C10_DummyCount_Mean
+    ,sum(Last6m_Repyst_C10_DummyCount) as Last180Days_Rp_C10_DummyCount_Sum
+    ,max(Last6m_Repyst_C11_DummyCount) as Last180Days_Rp_C11_DummyCount_Max
+    ,mean(Last6m_Repyst_C11_DummyCount) as Last180Days_Rp_C11_DummyCount_Mean
+    ,sum(Last6m_Repyst_C11_DummyCount) as Last180Days_Rp_C11_DummyCount_Sum
+    ,max(Last6m_Repyst_C12_DummyCount) as Last180Days_Rp_C12_DummyCount_Max
+    ,mean(Last6m_Repyst_C12_DummyCount) as Last180Days_Rp_C12_DummyCount_Mean
+    ,sum(Last6m_Repyst_C12_DummyCount) as Last180Days_Rp_C12_DummyCount_Sum
+    ,max(Last6m_Repyst_C13_DummyCount) as Last180Days_Rp_C13_DummyCount_Max
+    ,mean(Last6m_Repyst_C13_DummyCount) as Last180Days_Rp_C13_DummyCount_Mean
+    ,sum(Last6m_Repyst_C13_DummyCount) as Last180Days_Rp_C13_DummyCount_Sum
+    ,max(Last6m_Repyst_C14_DummyCount) as Last180Days_Rp_C14_DummyCount_Max
+    ,mean(Last6m_Repyst_C14_DummyCount) as Last180Days_Rp_C14_DummyCount_Mean
+    ,sum(Last6m_Repyst_C14_DummyCount) as Last180Days_Rp_C14_DummyCount_Sum
+    ,max(Last6m_Repyst_C15_DummyCount) as Last180Days_Rp_C15_DummyCount_Max
+    ,mean(Last6m_Repyst_C15_DummyCount) as Last180Days_Rp_C15_DummyCount_Mean
+    ,sum(Last6m_Repyst_C15_DummyCount) as Last180Days_Rp_C15_DummyCount_Sum
+    ,max(Last6m_Repyst_C16_DummyCount) as Last180Days_Rp_C16_DummyCount_Max
+    ,mean(Last6m_Repyst_C16_DummyCount) as Last180Days_Rp_C16_DummyCount_Mean
+    ,sum(Last6m_Repyst_C16_DummyCount) as Last180Days_Rp_C16_DummyCount_Sum
+    ,max(Last6m_Repyst_C17_DummyCount) as Last180Days_Rp_C17_DummyCount_Max
+    ,mean(Last6m_Repyst_C17_DummyCount) as Last180Days_Rp_C17_DummyCount_Mean
+    ,sum(Last6m_Repyst_C17_DummyCount) as Last180Days_Rp_C17_DummyCount_Sum
+
+    -- 过去360天
+    ,max(Last12m_Lnmx_M4_DummyCount) as Last360Days_Ln_M4Cnt_Max
+    ,max(Last12m_rpst_Cnt) as Last12m_rpstCnt_Max
+    ,mean(Last12m_rpst_Cnt) as Last12m_rpstCnt_Mean
+    ,sum(Last12m_rpst_Cnt) as Last12m_rpstCnt_Sum
+    ,max(Last12m_rpst_UniqCnt) as Last12m_rpstUniqCnt_Max
+    ,mean(Last12m_rpst_UniqCnt) as Last12m_rpstUniqCnt_Mean
+    ,sum(Last12m_rpst_UniqCnt) as Last12m_rpstUniqCnt_Sum
+    ,max(Last12m_Repyst_C1_DummyCount) as Last360Days_Rp_C1_DummyCount_Max
+    ,mean(Last12m_Repyst_C1_DummyCount) as Last360Days_Rp_C1_DummyCount_Mean
+    ,sum(Last12m_Repyst_C1_DummyCount) as Last360Days_Rp_C1_DummyCount_Sum
+    ,max(Last12m_Repyst_C2_DummyCount) as Last360Days_Rp_C2_DummyCount_Max
+    ,mean(Last12m_Repyst_C2_DummyCount) as Last360Days_Rp_C2_DummyCount_Mean
+    ,sum(Last12m_Repyst_C2_DummyCount) as Last360Days_Rp_C2_DummyCount_Sum
+    ,max(Last12m_Repyst_C3_DummyCount) as Last360Days_Rp_C3_DummyCount_Max
+    ,mean(Last12m_Repyst_C3_DummyCount) as Last360Days_Rp_C3_DummyCount_Mean
+    ,sum(Last12m_Repyst_C3_DummyCount) as Last360Days_Rp_C3_DummyCount_Sum
+    ,max(Last12m_Repyst_C4_DummyCount) as Last360Days_Rp_C4_DummyCount_Max
+    ,mean(Last12m_Repyst_C4_DummyCount) as Last360Days_Rp_C4_DummyCount_Mean
+    ,sum(Last12m_Repyst_C4_DummyCount) as Last360Days_Rp_C4_DummyCount_Sum
+    ,max(Last12m_Repyst_C5_DummyCount) as Last360Days_Rp_C5_DummyCount_Max
+    ,mean(Last12m_Repyst_C5_DummyCount) as Last360Days_Rp_C5_DummyCount_Mean
+    ,sum(Last12m_Repyst_C5_DummyCount) as Last360Days_Rp_C5_DummyCount_Sum
+    ,max(Last12m_Repyst_C6_DummyCount) as Last360Days_Rp_C6_DummyCount_Max
+    ,mean(Last12m_Repyst_C6_DummyCount) as Last360Days_Rp_C6_DummyCount_Mean
+    ,sum(Last12m_Repyst_C6_DummyCount) as Last360Days_Rp_C6_DummyCount_Sum
+    ,max(Last12m_Repyst_C7_DummyCount) as Last360Days_Rp_C7_DummyCount_Max
+    ,mean(Last12m_Repyst_C7_DummyCount) as Last360Days_Rp_C7_DummyCount_Mean
+    ,sum(Last12m_Repyst_C7_DummyCount) as Last360Days_Rp_C7_DummyCount_Sum
+    ,max(Last12m_Repyst_C8_DummyCount) as Last360Days_Rp_C8_DummyCount_Max
+    ,mean(Last12m_Repyst_C8_DummyCount) as Last360Days_Rp_C8_DummyCount_Mean
+    ,sum(Last12m_Repyst_C8_DummyCount) as Last360Days_Rp_C8_DummyCount_Sum
+    ,max(Last12m_Repyst_C9_DummyCount) as Last360Days_Rp_C9_DummyCount_Max
+    ,mean(Last12m_Repyst_C9_DummyCount) as Last360Days_Rp_C9_DummyCount_Mean
+    ,sum(Last12m_Repyst_C9_DummyCount) as Last360Days_Rp_C9_DummyCount_Sum
+    ,max(Last12m_Repyst_C10_DummyCount) as Last360Days_Rp_C10_DummyCount_Max
+    ,mean(Last12m_Repyst_C10_DummyCount) as Last360Days_Rp_C10_DummyCount_Mean
+    ,sum(Last12m_Repyst_C10_DummyCount) as Last360Days_Rp_C10_DummyCount_Sum
+    ,max(Last12m_Repyst_C11_DummyCount) as Last360Days_Rp_C11_DummyCount_Max
+    ,mean(Last12m_Repyst_C11_DummyCount) as Last360Days_Rp_C11_DummyCount_Mean
+    ,sum(Last12m_Repyst_C11_DummyCount) as Last360Days_Rp_C11_DummyCount_Sum
+    ,max(Last12m_Repyst_C12_DummyCount) as Last360Days_Rp_C12_DummyCount_Max
+    ,mean(Last12m_Repyst_C12_DummyCount) as Last360Days_Rp_C12_DummyCount_Mean
+    ,sum(Last12m_Repyst_C12_DummyCount) as Last360Days_Rp_C12_DummyCount_Sum
+    ,max(Last12m_Repyst_C13_DummyCount) as Last360Days_Rp_C13_DummyCount_Max
+    ,mean(Last12m_Repyst_C13_DummyCount) as Last360Days_Rp_C13_DummyCount_Mean
+    ,sum(Last12m_Repyst_C13_DummyCount) as Last360Days_Rp_C13_DummyCount_Sum
+    ,max(Last12m_Repyst_C14_DummyCount) as Last360Days_Rp_C14_DummyCount_Max
+    ,mean(Last12m_Repyst_C14_DummyCount) as Last360Days_Rp_C14_DummyCount_Mean
+    ,sum(Last12m_Repyst_C14_DummyCount) as Last360Days_Rp_C14_DummyCount_Sum
+    ,max(Last12m_Repyst_C15_DummyCount) as Last360Days_Rp_C15_DummyCount_Max
+    ,mean(Last12m_Repyst_C15_DummyCount) as Last360Days_Rp_C15_DummyCount_Mean
+    ,sum(Last12m_Repyst_C15_DummyCount) as Last360Days_Rp_C15_DummyCount_Sum
+    ,max(Last12m_Repyst_C16_DummyCount) as Last360Days_Rp_C16_DummyCount_Max
+    ,mean(Last12m_Repyst_C16_DummyCount) as Last360Days_Rp_C16_DummyCount_Mean
+    ,sum(Last12m_Repyst_C16_DummyCount) as Last360Days_Rp_C16_DummyCount_Sum
+    ,max(Last12m_Repyst_C17_DummyCount) as Last360Days_Rp_C17_DummyCount_Max
+    ,mean(Last12m_Repyst_C17_DummyCount) as Last360Days_Rp_C17_DummyCount_Mean
+    ,sum(Last12m_Repyst_C17_DummyCount) as Last360Days_Rp_C17_DummyCount_Sum
+
+    -- 过去36个月
+    ,max(Last36m_Lnmx_M4_DummyCount) as Last1080Days_Ln_M4Cnt_Max
+    ,max(Last36m_rpst_Cnt) as Last36m_rpstCnt_Max
+    ,mean(Last36m_rpst_Cnt) as Last36m_rpstCnt_Mean
+    ,sum(Last36m_rpst_Cnt) as Last36m_rpstCnt_Sum
+    ,max(Last36m_rpst_UniqCnt) as Last36m_rpstUniqCnt_Max
+    ,mean(Last36m_rpst_UniqCnt) as Last36m_rpstUniqCnt_Mean
+    ,sum(Last36m_rpst_UniqCnt) as Last36m_rpstUniqCnt_Sum
+    ,max(Last36m_Repyst_C1_DummyCount) as Last1080Days_Rp_C1_DummyCount_Max
+    ,mean(Last36m_Repyst_C1_DummyCount) as Last1080Days_Rp_C1_DummyCount_Mean
+    ,sum(Last36m_Repyst_C1_DummyCount) as Last1080Days_Rp_C1_DummyCount_Sum
+    ,max(Last36m_Repyst_C2_DummyCount) as Last1080Days_Rp_C2_DummyCount_Max
+    ,mean(Last36m_Repyst_C2_DummyCount) as Last1080Days_Rp_C2_DummyCount_Mean
+    ,sum(Last36m_Repyst_C2_DummyCount) as Last1080Days_Rp_C2_DummyCount_Sum
+    ,max(Last36m_Repyst_C3_DummyCount) as Last1080Days_Rp_C3_DummyCount_Max
+    ,mean(Last36m_Repyst_C3_DummyCount) as Last1080Days_Rp_C3_DummyCount_Mean
+    ,sum(Last36m_Repyst_C3_DummyCount) as Last1080Days_Rp_C3_DummyCount_Sum
+    ,max(Last36m_Repyst_C4_DummyCount) as Last1080Days_Rp_C4_DummyCount_Max
+    ,mean(Last36m_Repyst_C4_DummyCount) as Last1080Days_Rp_C4_DummyCount_Mean
+    ,sum(Last36m_Repyst_C4_DummyCount) as Last1080Days_Rp_C4_DummyCount_Sum
+    ,max(Last36m_Repyst_C5_DummyCount) as Last1080Days_Rp_C5_DummyCount_Max
+    ,mean(Last36m_Repyst_C5_DummyCount) as Last1080Days_Rp_C5_DummyCount_Mean
+    ,sum(Last36m_Repyst_C5_DummyCount) as Last1080Days_Rp_C5_DummyCount_Sum
+    ,max(Last36m_Repyst_C6_DummyCount) as Last1080Days_Rp_C6_DummyCount_Max
+    ,mean(Last36m_Repyst_C6_DummyCount) as Last1080Days_Rp_C6_DummyCount_Mean
+    ,sum(Last36m_Repyst_C6_DummyCount) as Last1080Days_Rp_C6_DummyCount_Sum
+    ,max(Last36m_Repyst_C7_DummyCount) as Last1080Days_Rp_C7_DummyCount_Max
+    ,mean(Last36m_Repyst_C7_DummyCount) as Last1080Days_Rp_C7_DummyCount_Mean
+    ,sum(Last36m_Repyst_C7_DummyCount) as Last1080Days_Rp_C7_DummyCount_Sum
+    ,max(Last36m_Repyst_C8_DummyCount) as Last1080Days_Rp_C8_DummyCount_Max
+    ,mean(Last36m_Repyst_C8_DummyCount) as Last1080Days_Rp_C8_DummyCount_Mean
+    ,sum(Last36m_Repyst_C8_DummyCount) as Last1080Days_Rp_C8_DummyCount_Sum
+    ,max(Last36m_Repyst_C9_DummyCount) as Last1080Days_Rp_C9_DummyCount_Max
+    ,mean(Last36m_Repyst_C9_DummyCount) as Last1080Days_Rp_C9_DummyCount_Mean
+    ,sum(Last36m_Repyst_C9_DummyCount) as Last1080Days_Rp_C9_DummyCount_Sum
+    ,max(Last36m_Repyst_C10_DummyCount) as Last1080Days_Rp_C10_DummyCount_Max
+    ,mean(Last36m_Repyst_C10_DummyCount) as Last1080Days_Rp_C10_DummyCount_Mean
+    ,sum(Last36m_Repyst_C10_DummyCount) as Last1080Days_Rp_C10_DummyCount_Sum
+    ,max(Last36m_Repyst_C11_DummyCount) as Last1080Days_Rp_C11_DummyCount_Max
+    ,mean(Last36m_Repyst_C11_DummyCount) as Last1080Days_Rp_C11_DummyCount_Mean
+    ,sum(Last36m_Repyst_C11_DummyCount) as Last1080Days_Rp_C11_DummyCount_Sum
+    ,max(Last36m_Repyst_C12_DummyCount) as Last1080Days_Rp_C12_DummyCount_Max
+    ,mean(Last36m_Repyst_C12_DummyCount) as Last1080Days_Rp_C12_DummyCount_Mean
+    ,sum(Last36m_Repyst_C12_DummyCount) as Last1080Days_Rp_C12_DummyCount_Sum
+    ,max(Last36m_Repyst_C13_DummyCount) as Last1080Days_Rp_C13_DummyCount_Max
+    ,mean(Last36m_Repyst_C13_DummyCount) as Last1080Days_Rp_C13_DummyCount_Mean
+    ,sum(Last36m_Repyst_C13_DummyCount) as Last1080Days_Rp_C13_DummyCount_Sum
+    ,max(Last36m_Repyst_C14_DummyCount) as Last1080Days_Rp_C14_DummyCount_Max
+    ,mean(Last36m_Repyst_C14_DummyCount) as Last1080Days_Rp_C14_DummyCount_Mean
+    ,sum(Last36m_Repyst_C14_DummyCount) as Last1080Days_Rp_C14_DummyCount_Sum
+    ,max(Last36m_Repyst_C15_DummyCount) as Last1080Days_Rp_C15_DummyCount_Max
+    ,mean(Last36m_Repyst_C15_DummyCount) as Last1080Days_Rp_C15_DummyCount_Mean
+    ,sum(Last36m_Repyst_C15_DummyCount) as Last1080Days_Rp_C15_DummyCount_Sum
+    ,max(Last36m_Repyst_C16_DummyCount) as Last1080Days_Rp_C16_DummyCount_Max
+    ,mean(Last36m_Repyst_C16_DummyCount) as Last1080Days_Rp_C16_DummyCount_Mean
+    ,sum(Last36m_Repyst_C16_DummyCount) as Last1080Days_Rp_C16_DummyCount_Sum
+    ,max(Last36m_Repyst_C17_DummyCount) as Last1080Days_Rp_C17_DummyCount_Max
+    ,mean(Last36m_Repyst_C17_DummyCount) as Last1080Days_Rp_C17_DummyCount_Mean
+    ,sum(Last36m_Repyst_C17_DummyCount) as Last1080Days_Rp_C17_DummyCount_Sum
+
+    -- 过去60个月
+    ,max(Last60m_Lnmx_M4_DummyCount) as Last1800Days_Ln_M4Cnt_Max
+    ,max(Last60m_rpst_Cnt) as Last60m_rpstCnt_Max
+    ,mean(Last60m_rpst_Cnt) as Last60m_rpstCnt_Mean
+    ,sum(Last60m_rpst_Cnt) as Last60m_rpstCnt_Sum
+    ,max(Last60m_rpst_UniqCnt) as Last60m_rpstUniqCnt_Max
+    ,mean(Last60m_rpst_UniqCnt) as Last60m_rpstUniqCnt_Mean
+    ,sum(Last60m_rpst_UniqCnt) as Last60m_rpstUniqCnt_Sum
+    ,max(Last60m_Repyst_C1_DummyCount) as Last1800Days_Rp_C1_DummyCount_Max
+    ,mean(Last60m_Repyst_C1_DummyCount) as Last1800Days_Rp_C1_DummyCount_Mean
+    ,sum(Last60m_Repyst_C1_DummyCount) as Last1800Days_Rp_C1_DummyCount_Sum
+    ,max(Last60m_Repyst_C2_DummyCount) as Last1800Days_Rp_C2_DummyCount_Max
+    ,mean(Last60m_Repyst_C2_DummyCount) as Last1800Days_Rp_C2_DummyCount_Mean
+    ,sum(Last60m_Repyst_C2_DummyCount) as Last1800Days_Rp_C2_DummyCount_Sum
+    ,max(Last60m_Repyst_C3_DummyCount) as Last1800Days_Rp_C3_DummyCount_Max
+    ,mean(Last60m_Repyst_C3_DummyCount) as Last1800Days_Rp_C3_DummyCount_Mean
+    ,sum(Last60m_Repyst_C3_DummyCount) as Last1800Days_Rp_C3_DummyCount_Sum
+    ,max(Last60m_Repyst_C4_DummyCount) as Last1800Days_Rp_C4_DummyCount_Max
+    ,mean(Last60m_Repyst_C4_DummyCount) as Last1800Days_Rp_C4_DummyCount_Mean
+    ,sum(Last60m_Repyst_C4_DummyCount) as Last1800Days_Rp_C4_DummyCount_Sum
+    ,max(Last60m_Repyst_C5_DummyCount) as Last1800Days_Rp_C5_DummyCount_Max
+    ,mean(Last60m_Repyst_C5_DummyCount) as Last1800Days_Rp_C5_DummyCount_Mean
+    ,sum(Last60m_Repyst_C5_DummyCount) as Last1800Days_Rp_C5_DummyCount_Sum
+    ,max(Last60m_Repyst_C6_DummyCount) as Last1800Days_Rp_C6_DummyCount_Max
+    ,mean(Last60m_Repyst_C6_DummyCount) as Last1800Days_Rp_C6_DummyCount_Mean
+    ,sum(Last60m_Repyst_C6_DummyCount) as Last1800Days_Rp_C6_DummyCount_Sum
+    ,max(Last60m_Repyst_C7_DummyCount) as Last1800Days_Rp_C7_DummyCount_Max
+    ,mean(Last60m_Repyst_C7_DummyCount) as Last1800Days_Rp_C7_DummyCount_Mean
+    ,sum(Last60m_Repyst_C7_DummyCount) as Last1800Days_Rp_C7_DummyCount_Sum
+    ,max(Last60m_Repyst_C8_DummyCount) as Last1800Days_Rp_C8_DummyCount_Max
+    ,mean(Last60m_Repyst_C8_DummyCount) as Last1800Days_Rp_C8_DummyCount_Mean
+    ,sum(Last60m_Repyst_C8_DummyCount) as Last1800Days_Rp_C8_DummyCount_Sum
+    ,max(Last60m_Repyst_C9_DummyCount) as Last1800Days_Rp_C9_DummyCount_Max
+    ,mean(Last60m_Repyst_C9_DummyCount) as Last1800Days_Rp_C9_DummyCount_Mean
+    ,sum(Last60m_Repyst_C9_DummyCount) as Last1800Days_Rp_C9_DummyCount_Sum
+    ,max(Last60m_Repyst_C10_DummyCount) as Last1800Days_Rp_C10_DummyCount_Max
+    ,mean(Last60m_Repyst_C10_DummyCount) as Last1800Days_Rp_C10_DummyCount_Mean
+    ,sum(Last60m_Repyst_C10_DummyCount) as Last1800Days_Rp_C10_DummyCount_Sum
+    ,max(Last60m_Repyst_C11_DummyCount) as Last1800Days_Rp_C11_DummyCount_Max
+    ,mean(Last60m_Repyst_C11_DummyCount) as Last1800Days_Rp_C11_DummyCount_Mean
+    ,sum(Last60m_Repyst_C11_DummyCount) as Last1800Days_Rp_C11_DummyCount_Sum
+    ,max(Last60m_Repyst_C12_DummyCount) as Last1800Days_Rp_C12_DummyCount_Max
+    ,mean(Last60m_Repyst_C12_DummyCount) as Last1800Days_Rp_C12_DummyCount_Mean
+    ,sum(Last60m_Repyst_C12_DummyCount) as Last1800Days_Rp_C12_DummyCount_Sum
+    ,max(Last60m_Repyst_C13_DummyCount) as Last1800Days_Rp_C13_DummyCount_Max
+    ,mean(Last60m_Repyst_C13_DummyCount) as Last1800Days_Rp_C13_DummyCount_Mean
+    ,sum(Last60m_Repyst_C13_DummyCount) as Last1800Days_Rp_C13_DummyCount_Sum
+    ,max(Last60m_Repyst_C14_DummyCount) as Last1800Days_Rp_C14_DummyCount_Max
+    ,mean(Last60m_Repyst_C14_DummyCount) as Last1800Days_Rp_C14_DummyCount_Mean
+    ,sum(Last60m_Repyst_C14_DummyCount) as Last1800Days_Rp_C14_DummyCount_Sum
+    ,max(Last60m_Repyst_C15_DummyCount) as Last1800Days_Rp_C15_DummyCount_Max
+    ,mean(Last60m_Repyst_C15_DummyCount) as Last1800Days_Rp_C15_DummyCount_Mean
+    ,sum(Last60m_Repyst_C15_DummyCount) as Last1800Days_Rp_C15_DummyCount_Sum
+    ,max(Last60m_Repyst_C16_DummyCount) as Last1800Days_Rp_C16_DummyCount_Max
+    ,mean(Last60m_Repyst_C16_DummyCount) as Last1800Days_Rp_C16_DummyCount_Mean
+    ,sum(Last60m_Repyst_C16_DummyCount) as Last1800Days_Rp_C16_DummyCount_Sum
+    ,max(Last60m_Repyst_C17_DummyCount) as Last1800Days_Rp_C17_DummyCount_Max
+    ,mean(Last60m_Repyst_C17_DummyCount) as Last1800Days_Rp_C17_DummyCount_Mean
+    ,sum(Last60m_Repyst_C17_DummyCount) as Last1800Days_Rp_C17_DummyCount_Sum
+
+from YH_LAST24M
+groupby(busiType)
+where busiType != null
+;

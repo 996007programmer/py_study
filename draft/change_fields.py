@@ -27,10 +27,10 @@ def main():
 	for field in field_compare_list:
 		if (field[len(field) - 1] != '-'):
 			field_list = field.split(' ')
-			field_dict['%s'%field_list[1]] = field_list[0]
-			field_needchange_list.append(field_list[1])
+			field_dict['%s'%field_list[0]] = field_list[1]
+			field_needchange_list.append(field_list[0])
 			field_list.clear()
-
+	print(len(field_needchange_list))
 	# 替换开始
 	for line in fql_list:
 		tmp_line = line
