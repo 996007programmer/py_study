@@ -17,7 +17,7 @@ yh_mobile
 yh_postpaysmry
 yh_postpaytype
 yh_product
-yh_product_hist
+yh_product_histx
 yh_professional
 yh_publichousingfund
 yh_publicsmry
